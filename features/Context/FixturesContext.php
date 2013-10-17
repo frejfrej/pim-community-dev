@@ -9,6 +9,7 @@ use Oro\Bundle\DataAuditBundle\Entity\Audit;
 use Oro\Bundle\UserBundle\Entity\Role;
 use Oro\Bundle\UserBundle\Entity\User;
 use Oro\Bundle\UserBundle\Entity\UserApi;
+use Pim\Bundle\CatalogBundle\Entity\Association;
 use Pim\Bundle\CatalogBundle\Entity\AttributeGroup;
 use Pim\Bundle\CatalogBundle\Entity\AttributeOption;
 use Pim\Bundle\CatalogBundle\Entity\AttributeRequirement;
@@ -357,7 +358,7 @@ class FixturesContext extends RawMinkContext
                 $data
             );
 
-            $group = $this->getGroup($data['code']);
+            $group = $this->getAttributeGroup($data['code']);
 
             if (!$group) {
                 $group = new AttributeGroup();
@@ -405,7 +406,7 @@ class FixturesContext extends RawMinkContext
             }
 
             $attribute->setSortOrder($data['position']);
-            $attribute->setGroup($this->getGroup($data['group']));
+            $attribute->setGroup($this->getAttributeGroup($data['group']));
             $attribute->setRequired(strtolower($data['required']) === 'yes');
             $attribute->setScopable(strtolower($data['scopable']) === 'yes');
             $attribute->setTranslatable(strtolower($data['translatable']) === 'yes');
@@ -665,7 +666,7 @@ class FixturesContext extends RawMinkContext
             $attribute->setLabel($data['label']);
 
             if (isset($data['group'])) {
-                $group = $this->getGroup($data['group']);
+                $group = $this->getAttributeGroup($data['group']);
                 $attribute->setGroup($group);
             }
 
@@ -809,7 +810,20 @@ class FixturesContext extends RawMinkContext
         }
     }
 
+    /**
+     * @param TableNode $table
+     *
+     * @Given /^the following associations?:$/
+     */
+    public function theFollowingAssociations(TableNode $table)
+    {
+        foreach ($table->getHash() as $data) {
+            $code = $data['code'];
+            $label = isset($data['label']) ? $data['label'] : null;
 
+            $this->createAssociation($code, $label);
+        }
+    }
 
     /**
      * @Given /^there is no identifier attribute$/
@@ -1056,7 +1070,7 @@ class FixturesContext extends RawMinkContext
      *
      * @return AttributeGroup|null
      */
-    public function getGroup($name)
+    public function getAttributeGroup($name)
     {
         try {
             return $this->getEntityOrException(
@@ -1120,6 +1134,16 @@ class FixturesContext extends RawMinkContext
     public function getJobInstance($code)
     {
         return $this->getEntityOrException('OroBatchBundle:JobInstance', array('code' => $code));
+    }
+
+    /**
+     * @param string $code
+     *
+     * @return Association
+     */
+    public function getAssociation($code)
+    {
+        return $this->getEntityOrException('PimCatalogBundle:Association', array('code' => $code));
     }
 
     /**
@@ -1349,6 +1373,19 @@ class FixturesContext extends RawMinkContext
         }
 
         $this->persist($variant);
+    }
+
+    /**
+     * @param string $code
+     * @param string $label
+     */
+    private function createAssociation($code, $label)
+    {
+        $association = new Association();
+        $association->setCode($code);
+        $association->setLocale('en_US')->setLabel($label);
+
+        $this->persist($association);
     }
 
     /**
