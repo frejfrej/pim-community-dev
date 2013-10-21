@@ -13,6 +13,7 @@ use Pim\Bundle\CatalogBundle\Entity\Association;
 use Pim\Bundle\CatalogBundle\Entity\AttributeGroup;
 use Pim\Bundle\CatalogBundle\Entity\AttributeOption;
 use Pim\Bundle\CatalogBundle\Entity\AttributeRequirement;
+use Pim\Bundle\CatalogBundle\Entity\GroupType;
 use Pim\Bundle\CatalogBundle\Entity\Category;
 use Pim\Bundle\CatalogBundle\Entity\Channel;
 use Pim\Bundle\CatalogBundle\Entity\Family;
@@ -97,6 +98,20 @@ class FixturesContext extends RawMinkContext
     public function createRequiredAttribute()
     {
         $this->createAttribute('SKU', false, 'identifier', true);
+    }
+
+    /**
+     * @BeforeScenario
+     */
+    public function resetGroupTypes()
+    {
+        $types = array(
+            'VARIANT' => 'Pim\Bundle\CatalogBundle\Entity\VariantGroup',
+            'X_SELL'  => 'Pim\Bundle\CatalogBundle\Entity\Group',
+        );
+        foreach ($types as $code => $entity) {
+            $this->createGroupType($code, $entity);
+        }
     }
 
     /**
@@ -804,9 +819,12 @@ class FixturesContext extends RawMinkContext
         foreach ($table->getHash() as $data) {
             $code = $data['code'];
             $label = $data['label'];
+            $type = $data['type'];
             $attributes = explode(', ', $data['attributes']);
 
-            $this->createVariant($code, $label, $attributes);
+            $products = (isset($data['products'])) ? explode(', ', $data['products']) : array();
+
+            $this->createVariant($code, $label, $type, $attributes, $products);
         }
     }
 
@@ -1035,6 +1053,21 @@ class FixturesContext extends RawMinkContext
     /**
      * @param string $code
      *
+     * @return GroupType
+     */
+    public function getGroupType($code)
+    {
+        return $this->getEntityOrException(
+            'PimCatalogBundle:GroupType',
+            array(
+                'code' => $code
+            )
+        );
+    }
+
+    /**
+     * @param string $code
+     *
      * @return ProductAttribute
      */
     public function getAttribute($code)
@@ -1191,6 +1224,23 @@ class FixturesContext extends RawMinkContext
         $this->getEntityManager()->refresh($productValue);
 
         return $productValue;
+    }
+
+    /**
+     * @param string $code
+     * @param string $entity
+     *
+     * @return GroupType
+     */
+    private function createGroupType($code, $entity)
+    {
+        $type = new GroupType();
+        $type->setCode($code);
+        $type->setentity($entity);
+
+        $this->persist($type);
+
+        return $type;
     }
 
     /**
@@ -1359,17 +1409,28 @@ class FixturesContext extends RawMinkContext
     /**
      * @param string $code
      * @param string $label
+     * @param string $type
      * @param array  $attributes
+     * @param array  $products
      */
-    private function createVariant($code, $label, array $attributes)
+    private function createVariant($code, $label, $type, array $attributes, array $products = array())
     {
         $variant = new VariantGroup();
         $variant->setCode($code);
         $variant->setLocale('en_US')->setLabel($label); // TODO translation refactoring
 
+        $type = $this->getGroupType($type);
+        $variant->setType($type);
+
         foreach ($attributes as $attributeCode) {
             $attribute = $this->getAttribute($attributeCode);
             $variant->addAttribute($attribute);
+        }
+
+        foreach ($products as $sku) {
+            $product = $this->getProduct($sku);
+            $variant->addProduct($product);
+            $product->setVariantGroup($variant);
         }
 
         $this->persist($variant);

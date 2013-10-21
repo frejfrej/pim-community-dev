@@ -2,10 +2,7 @@
 
 namespace Pim\Bundle\CatalogBundle\Datagrid;
 
-use Oro\Bundle\GridBundle\Sorter\SorterInterface;
-
 use Oro\Bundle\FlexibleEntityBundle\Manager\FlexibleManager;
-
 use Oro\Bundle\FlexibleEntityBundle\AttributeType\AbstractAttributeType;
 use Oro\Bundle\FlexibleEntityBundle\Model\AbstractAttribute;
 use Oro\Bundle\GridBundle\Datagrid\FlexibleDatagridManager;
@@ -345,15 +342,5 @@ class VariantProductDatagridManager extends FlexibleDatagridManager
     public function setFlexibleManager(FlexibleManager $flexibleManager)
     {
         $this->flexibleManager = $flexibleManager;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getDefaultSorters()
-    {
-        return array(
-            $this->flexibleManager->getIdentifierAttribute()->getCode() => SorterInterface::DIRECTION_ASC
-        );
     }
 }
