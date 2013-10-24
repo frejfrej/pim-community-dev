@@ -380,7 +380,7 @@ class DataGridContext extends RawMinkContext implements PageObjectAwareInterface
      * @Then /^I should see locales? (.*)$/
      * @Then /^I should see (?:import|export) profiles? (.*)$/
      * @Then /^I should see (?:(?:entit|currenc)(?:y|ies)) (.*)$/
-     * @Then /^I should see variants? (.*)$/
+     * @Then /^I should see groups? (.*)$/
      * @Then /^I should see associations? (.*)$/
      */
     public function iShouldSeeEntities($elements)
@@ -403,7 +403,7 @@ class DataGridContext extends RawMinkContext implements PageObjectAwareInterface
      * @Then /^I should not see locales? (.*)$/
      * @Then /^I should not see (?:import|export) profiles? (.*)$/
      * @Then /^I should not see (?:(?:entit|currenc)(?:y|ies)) (.*)$/
-     * @Then /^I should not see variants? (.*)$/
+     * @Then /^I should not see groups? (.*)$/
      * @Then /^I should not see associations? (.*)$/
      */
     public function iShouldNotSeeEntities($entities)
@@ -435,7 +435,7 @@ class DataGridContext extends RawMinkContext implements PageObjectAwareInterface
      * @Then /^I should see sorted (?:import|export) profiles (.*)$/
      * @Then /^I should see sorted (?:entities) (.*)$/
      * @Then /^I should see sorted products (.*)$/
-     * @Then /^I should see sorted variants (.*)$/
+     * @Then /^I should see sorted groups (.*)$/
      * @Then /^I should see sorted associations (.*)$/
      */
     public function iShouldSeeSortedEntities($elements)
@@ -487,6 +487,54 @@ class DataGridContext extends RawMinkContext implements PageObjectAwareInterface
     {
         $this->datagrid->getRow($row)->click();
         $this->wait();
+    }
+
+    /**
+     * @param string $rows
+     *
+     * @throws ExpectationException
+     *
+     * @When /^I check the rows? "([^"]*)"$/
+     */
+    public function iCheckTheRows($rows)
+    {
+        $rows = $this->getMainContext()->listToArray($rows);
+
+        foreach ($rows as $row) {
+            $gridRow = $this->datagrid->getRow($row);
+            $checkbox = $gridRow->find('css', 'input[type="checkbox"][data-identifier]:not(:disabled)');
+
+            if (!$checkbox) {
+                throw $this->createExpectationException(sprintf('Unable to find a checkbox for row %s', $row));
+            }
+
+            $checkbox->check();
+        }
+    }
+
+    /**
+     * @param string $rows
+     *
+     * @throws ExpectationException
+     *
+     * @Then /^the rows? "([^"]*)" should be checked$/
+     */
+    public function theRowShouldBeChecked($rows)
+    {
+        $rows = $this->getMainContext()->listToArray($rows);
+
+        foreach ($rows as $row) {
+            $gridRow = $this->datagrid->getRow($row);
+            $checkbox = $gridRow->find('css', 'input[type="checkbox"][data-identifier]:not(:disabled)');
+
+            if (!$checkbox) {
+                throw $this->createExpectationException(sprintf('Unable to find a checkbox for row %s', $row));
+            }
+
+            if (!$checkbox->isChecked()) {
+                throw $this->createExpectationException(sprintf('Expecting row %s to be checked', $row));
+            }
+        }
     }
 
     /**

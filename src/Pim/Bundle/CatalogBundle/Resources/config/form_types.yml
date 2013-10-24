@@ -8,10 +8,15 @@ services:
         arguments:
             - '@pim_catalog.manager.product'
             - pim_product_value
-            - '@pim_catalog.form.type.product.view'
-            - '@pim_catalog.form.transform_imported_product_data_subscriber'
         tags:
             - { name: form.type, alias: pim_product }
+
+    pim_catalog.form.type.product_edit:
+        class:     %pim_catalog.form.type.product_edit.class%
+        arguments:
+            - '@pim_catalog.form.type.product.view'
+        tags:
+            - { name: form.type, alias: pim_product_edit }
 
     pim_catalog.form.type.product_create:
         class:     %pim_catalog.form.type.product_create.class%
@@ -99,11 +104,6 @@ services:
         tags:
             - { name: form.type, alias: pim_catalog_localized_collection }
 
-    pim_catalog.form.type.variant_group:
-        class: %pim_catalog.form.type.variant_group.class%
-        tags:
-            - { name: form.type, alias: pim_catalog_variant_group }
-
     pim_catalog.form.type.group:
         class: %pim_catalog.form.type.group.class%
         tags:
@@ -118,3 +118,8 @@ services:
         class: %pim_catalog.form.type.available_product_attributes.class%
         tags:
             - { name: form.type, alias: pim_available_product_attributes }
+
+    pim_catalog.form.type.product_association:
+        class: %pim_catalog.form.type.product_association.class%
+        tags:
+            - { name: form.type, alias: pim_catalog_product_association }
